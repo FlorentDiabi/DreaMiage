@@ -187,22 +187,64 @@ function launchGame() {
             .add(horizontalRight.scale(-80));
             islandPos.y += islandOffsetY;
 
-            const finalIsland = BABYLON.MeshBuilder.CreateCylinder("finalIsland", {
+            const checkPointIsland = BABYLON.MeshBuilder.CreateCylinder("checkPointIsland", {
                 diameter: 60,
                 height: 1.5,
                 tessellation: 64
             }, scene);
-            finalIsland.position = islandPos;
-            finalIsland.checkCollisions = true;
+            checkPointIsland.position = islandPos;
+            checkPointIsland.checkCollisions = true;
 
             const islandMat = new BABYLON.StandardMaterial("islandMat", scene);
             const islandTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/grass.png", scene);
             islandTexture.uScale = 4;
             islandTexture.vScale = 4;
             islandMat.diffuseTexture = islandTexture;
-            finalIsland.material = islandMat;
+            checkPointIsland.material = islandMat;
 
-            solidObjects.push(finalIsland);
+            solidObjects.push(checkPointIsland);
+
+            BABYLON.SceneLoader.ImportMesh(
+            null,
+            "models/",
+            "laby.glb",
+            scene,
+            function (meshes) {
+                const labyrinth = meshes[0];
+                
+                // Positionne le labyrinthe à une certaine distance de l’île finale
+                const offset = new BABYLON.Vector3(90, 0, 135); // décalage vers la droite
+                labyrinth.position = checkPointIsland.position.add(offset);
+                labyrinth.position.y = checkPointIsland.position.y + 10; // légèrement surélevé
+                
+                labyrinth.scaling = new BABYLON.Vector3(10, 10, 10); // ajuste selon taille du modèle
+                
+                // Collision activée sur tous les sous-meshes
+                meshes.forEach(mesh => {
+                    solidObjects.push(mesh);
+                    mesh.checkCollisions = true;
+                    mesh.receiveShadows = true;
+                });
+                solidObjects.push(labyrinth);
+
+                // Option : créer une plateforme d’arrivée derrière
+                const sortie = BABYLON.MeshBuilder.CreateBox("sortieLabyrinthe", {
+                    width: 10,
+                    height: 1.5,
+                    depth: 10
+                }, scene);
+                sortie.position = labyrinth.position.add(new BABYLON.Vector3(40, 0, 0)); // Ajuste selon le labyrinthe
+                sortie.position.y += 0.75;
+
+                const sortieMat = new BABYLON.StandardMaterial("sortieMat", scene);
+                sortieMat.diffuseColor = new BABYLON.Color3(0.2, 1, 0.8);
+                sortie.material = sortieMat;
+                sortie.checkCollisions = true;
+
+                solidObjects.push(sortie);
+            }
+        );
+
 
 
             
@@ -523,7 +565,7 @@ function launchGame() {
             camera.radius = BABYLON.Scalar.Lerp(camera.radius, 8, 0.1);
             camera.target = cameraTarget;
 
-            const islandMesh = scene.getMeshByName("finalIsland");
+            const islandMesh = scene.getMeshByName("checkPointIsland");
             if (islandMesh && !checkpointReached) {
                 const distance = BABYLON.Vector3.Distance(bonhomme.position, islandMesh.position);
             
