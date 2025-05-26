@@ -259,6 +259,56 @@ function launchGame() {
 
             solidObjects.push(checkPointIsland);
 
+            // ––––– Panneau flottant au-dessus du checkpoint #1 –––––
+            const dt = new BABYLON.DynamicTexture(
+            "dt_checkpoint1",
+            { width: 2048, height: 512 },
+            scene,
+            false
+            );
+            dt.hasAlpha = true;
+            
+            const font = "bold 100px Arial";
+            dt.drawText(
+            "Attention à vous dans ce labyrinthe,",
+            null,
+            80,
+            font,
+            "white",
+            "transparent",
+            true
+            );
+            dt.drawText(
+            "ne vous faites pas aspirer par les murs....",
+            null,
+            180,
+            font,
+            "white",
+            "transparent",
+            true
+            );
+
+            
+            const labelPlane = BABYLON.MeshBuilder.CreatePlane("labelPlane1", {
+            width: 16,
+            height: 4
+            }, scene);
+
+            // Position juste au-dessus de l’île
+            labelPlane.position = checkPointIsland.position.add(new BABYLON.Vector3(-10, 10, 15));
+
+            // Toujours face à la caméra
+            labelPlane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+            // Matériau transparent
+            const matLabel = new BABYLON.StandardMaterial("matLabel1", scene);
+            matLabel.diffuseTexture = dt;
+            matLabel.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            matLabel.backFaceCulling = false;
+            matLabel.alpha = 1;
+            labelPlane.material = matLabel;
+
+
             BABYLON.SceneLoader.ImportMesh(
             null,
             "models/",
