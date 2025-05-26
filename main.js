@@ -2,6 +2,7 @@ window.addEventListener('DOMContentLoaded', function () {
     const playButton = document.getElementById('playButton');
     playButton.addEventListener('click', () => {
         document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('renderCanvas').style.display = 'block';
         launchGame();
     });
 });
@@ -12,6 +13,59 @@ function launchGame() {
 
     const canvas = document.getElementById('renderCanvas');
     const engine = new BABYLON.Engine(canvas, true);
+
+   
+    const pauseMenu      = document.getElementById('pauseMenu');
+    const btnRespawn     = document.getElementById('btnRespawn');
+    const btnRestart     = document.getElementById('btnRestart');
+    const btnHome        = document.getElementById('btnHome');
+
+    let isPaused = false;
+
+    
+    function togglePause() {
+    isPaused = !isPaused;
+
+    if (isPaused) {
+        pauseMenu.classList.remove('hidden');
+        document.exitPointerLock?.();
+        engine.stopRenderLoop();
+    } else {
+        pauseMenu.classList.add('hidden');
+        engine.runRenderLoop(() => scene.render());
+    }
+    }
+
+    // ——— ECHAP = PAUSE ———
+    window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') togglePause();
+    });
+
+    // Réapparaître au dernier checkpoint
+    btnRespawn.addEventListener('click', () => {
+    bonhomme.position.copyFrom(checkpointPosition);
+    togglePause();
+    });
+
+    // Recommencer : retour aux coordonnées (0,5,0)
+    btnRestart.addEventListener('click', () => {
+    bonhomme.position.set(0, 5, 0);
+    togglePause();
+    });
+
+    // Retour écran d’accueil
+    btnHome.addEventListener('click', () => {
+    // masque la scène et remet l’écran de départ
+    document.getElementById('startScreen').style.display = 'flex';
+    canvas.style.display = 'none';
+
+    // nettoyage minimal
+    engine.stopRenderLoop();
+    scene.dispose();
+
+    togglePause();   // ferme le menu
+    });
+
     let bonhomme;
     const createScene = function () {
         let mainAnim = null;
