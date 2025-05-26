@@ -418,7 +418,7 @@ function launchGame() {
 
 
         //SPAWN DU BONHOMME A CHANGER
-        // bonhomme.position = new BABYLON.Vector3(platformPositions[platformPositions.length - 1].x, platformPositions[platformPositions.length - 1].y, platformPositions[platformPositions.length - 1].z);
+        bonhomme.position = new BABYLON.Vector3(platformPositions[platformPositions.length - 1].x, platformPositions[platformPositions.length - 1].y, platformPositions[platformPositions.length - 1].z);
 
         // Faire apparaître le bonhomme sur la plateforme finale
         const horizontalPlatformMesh = scene.getMeshByName("horizontalPlatform");
@@ -458,61 +458,103 @@ function launchGame() {
             }
 
             // Création de la plateforme rectangulaire qui part sur la gauche
-            // const rectPlatform = BABYLON.MeshBuilder.CreateBox("rectPlatform", {
-            //     width: 100,    // largeur sur X
-            //     height: 1,    // épaisseur
-            //     depth: 15     // profondeur sur Z
-            // }, scene);
+            const rectPlatform = BABYLON.MeshBuilder.CreateBox("rectPlatform", {
+                 width: 72,    // largeur sur X
+                 height: 1,    // épaisseur
+                 depth: 15     // profondeur sur Z
+             }, scene);
 
-            // rectPlatform.position = new BABYLON.Vector3(
-            //     horizontalPlatformMesh.position.x +100,                   // décale vers la gauche
-            //     horizontalPlatformMesh.position.y + platformCount * stepHeight + 3,  // au-dessus de la dernière plateforme
-            //     horizontalPlatformMesh.position.z + 270 + platformCount * 15         // continue l’avancée en Z
-            // );
+             rectPlatform.position = new BABYLON.Vector3(
+                horizontalPlatformMesh.position.x +120,                   // décale vers la gauche
+                 horizontalPlatformMesh.position.y + platformCount * stepHeight + 3,  // au-dessus de la dernière plateforme
+                 horizontalPlatformMesh.position.z + 340 + platformCount * 15         // continue l’avancée en Z
+             );
 
-            // rectPlatform.checkCollisions = true;
+            rectPlatform.checkCollisions = true;
+            solidObjects.push(rectPlatform);
 
-            // const rectMat = new BABYLON.StandardMaterial("matRectPlat", scene);
-            // rectMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // rouge
-            // rectPlatform.material = rectMat;
+            const rectMat = new BABYLON.StandardMaterial("matRectPlat", scene);
+            rectMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // rouge
+             rectPlatform.material = rectMat;
 
-            // const wallWidth = 1;  // plus large que la plateforme (4 unités en plus)
-            // const wallHeight = 5;
-            // const wallDepth = 25;
+            const wallWidth = 1;  // plus large que la plateforme (4 unités en plus)
+            const wallHeight = 5;
+             const wallDepth = 15;
 
             // // Position de base de la plateforme rectangulaire
-            // const baseX = rectPlatform.position.x;
-            // const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2; // au-dessus de la plateforme
-            // const baseZ = rectPlatform.position.z;
+             const baseX = rectPlatform.position.x;
+            const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2; // au-dessus de la plateforme
+            const baseZ = rectPlatform.position.z;
 
             // // Distance pour éloigner les murs des bords
-            // const offsetZ = rectPlatform.scaling.z / 2 + 3; // 3 unités devant/derrière la plateforme
+             const offsetZ = rectPlatform.scaling.z / 2 + 3; // 3 unités devant/derrière la plateforme
 
             // // Mur 1 - devant la plateforme (plus éloigné)
-            // const wall1 = BABYLON.MeshBuilder.CreateBox("wall1", {
-            //     width: wallWidth,
-            //     height: wallHeight,
-            //     depth: wallDepth
-            // }, scene);
-            // wall1.position = new BABYLON.Vector3(baseX, baseY, baseZ - offsetZ);
-            // wall1.checkCollisions = true;
+            const wall1 = BABYLON.MeshBuilder.CreateBox("wall1", {
+               width: wallWidth,
+                 height: wallHeight,
+                 depth: wallDepth
+             }, scene);
+             wall1.position = new BABYLON.Vector3(baseX, baseY, baseZ);
+             wall1.checkCollisions = true;
 
-            // const wallMat1 = new BABYLON.StandardMaterial("wallMat1", scene);
-            // wallMat1.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
-            // wall1.material = wallMat1;
+            const wallMat1 = new BABYLON.StandardMaterial("wallMat1", scene);
+            wallMat1.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            wall1.material = wallMat1;
+            solidObjects.push(wall1);
 
             // // Mur 2 - derrière la plateforme (plus éloigné)
-            // const wall2 = BABYLON.MeshBuilder.CreateBox("wall2", {
-            //     width: wallWidth,
-            //     height: wallHeight,
-            //     depth: wallDepth
-            // }, scene);
-            // wall2.position = new BABYLON.Vector3(baseX + 20, baseY, baseZ + offsetZ);
-            // wall2.checkCollisions = true;
+             const wall2 = BABYLON.MeshBuilder.CreateBox("wall2", {
+               width: wallWidth,
+                height: wallHeight,
+                depth: wallDepth
+            }, scene);
+            wall2.position = new BABYLON.Vector3(baseX + 20, baseY, baseZ);
+            wall2.checkCollisions = true;
 
-            // const wallMat2 = new BABYLON.StandardMaterial("wallMat2", scene);
-            // wallMat2.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
-            // wall2.material = wallMat2;
+            const wallMat2 = new BABYLON.StandardMaterial("wallMat2", scene);
+            wallMat2.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            wall2.material = wallMat2;
+            solidObjects.push(wall2);
+
+            // Mur 3
+            const wall3 = BABYLON.MeshBuilder.CreateBox("wall3", {
+                width: wallWidth,
+                height: wallHeight,
+                depth: wallDepth
+            }, scene);
+            wall3.position = new BABYLON.Vector3(baseX - 20, baseY, baseZ);
+            wall3.checkCollisions = true;
+            const wallMat3 = new BABYLON.StandardMaterial("wallMat3", scene);
+            wallMat3.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            wall3.material = wallMat3;
+            solidObjects.push(wall3);
+
+            // Mur 4
+            const wall4 = BABYLON.MeshBuilder.CreateBox("wall4", {
+                width: wallWidth,
+                height: wallHeight,
+                depth: wallDepth
+            }, scene);
+            wall4.position = new BABYLON.Vector3(baseX + 10, baseY, baseZ);
+            wall4.checkCollisions = true;
+            const wallMat4 = new BABYLON.StandardMaterial("wallMat4", scene);
+            wallMat4.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            wall4.material = wallMat4;
+            solidObjects.push(wall4);
+
+            // Mur 5
+            const wall5 = BABYLON.MeshBuilder.CreateBox("wall5", {
+                width: wallWidth,
+                height: wallHeight,
+                depth: wallDepth
+            }, scene);
+            wall5.position = new BABYLON.Vector3(baseX - 30, baseY, baseZ);
+            wall5.checkCollisions = true;
+            const wallMat5 = new BABYLON.StandardMaterial("wallMat5", scene);
+            wallMat5.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            wall5.material = wallMat5;
+            solidObjects.push(wall5);
 
         }
         else {
