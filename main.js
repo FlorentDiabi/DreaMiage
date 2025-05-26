@@ -318,6 +318,93 @@ function launchGame() {
             // Décale le bonhomme vers le bord gauche (vers le disk)
             const backward = new BABYLON.Vector3(Math.cos(horizontalPlatformMesh.rotation.y), 0, -Math.sin(horizontalPlatformMesh.rotation.y));
             bonhomme.position.addInPlace(backward.scale(horizontalPlatformMesh.scaling.x * 15)); // bord
+
+            const platformCount = 10;
+            const platformDiameter = 10;
+            const stepHeight = 5;
+
+            for (let i = 0; i < platformCount; i++) {
+                const platform = BABYLON.MeshBuilder.CreateCylinder("smallPlatform_" + i, {
+                    diameter: platformDiameter,
+                    height: 0.5,
+                    tessellation: 24
+                }, scene);
+
+                // Positionne chaque plateforme en escalier, par rapport à la position de la grosse plateforme
+                const stepDepth = 15; // espace entre chaque plateforme sur l’axe Z (profond)
+
+                platform.position = new BABYLON.Vector3(
+                    horizontalPlatformMesh.position.x + 190,
+                    horizontalPlatformMesh.position.y + i * stepHeight + 3,
+                    horizontalPlatformMesh.position.z + 322 + i * stepDepth  // chaque plateforme plus loin sur Z
+                );
+
+                platform.checkCollisions = true;
+
+                const mat = new BABYLON.StandardMaterial("matSmallPlat_" + i, scene);
+                mat.diffuseColor = new BABYLON.Color3(0, 0.7, 1);  // Bleu clair
+                platform.material = mat;
+
+                solidObjects.push(platform);
+            }
+
+            // Création de la plateforme rectangulaire qui part sur la gauche
+            // const rectPlatform = BABYLON.MeshBuilder.CreateBox("rectPlatform", {
+            //     width: 100,    // largeur sur X
+            //     height: 1,    // épaisseur
+            //     depth: 15     // profondeur sur Z
+            // }, scene);
+
+            // rectPlatform.position = new BABYLON.Vector3(
+            //     horizontalPlatformMesh.position.x +100,                   // décale vers la gauche
+            //     horizontalPlatformMesh.position.y + platformCount * stepHeight + 3,  // au-dessus de la dernière plateforme
+            //     horizontalPlatformMesh.position.z + 270 + platformCount * 15         // continue l’avancée en Z
+            // );
+
+            // rectPlatform.checkCollisions = true;
+
+            // const rectMat = new BABYLON.StandardMaterial("matRectPlat", scene);
+            // rectMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // rouge
+            // rectPlatform.material = rectMat;
+
+            // const wallWidth = 1;  // plus large que la plateforme (4 unités en plus)
+            // const wallHeight = 5;
+            // const wallDepth = 25;
+
+            // // Position de base de la plateforme rectangulaire
+            // const baseX = rectPlatform.position.x;
+            // const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2; // au-dessus de la plateforme
+            // const baseZ = rectPlatform.position.z;
+
+            // // Distance pour éloigner les murs des bords
+            // const offsetZ = rectPlatform.scaling.z / 2 + 3; // 3 unités devant/derrière la plateforme
+
+            // // Mur 1 - devant la plateforme (plus éloigné)
+            // const wall1 = BABYLON.MeshBuilder.CreateBox("wall1", {
+            //     width: wallWidth,
+            //     height: wallHeight,
+            //     depth: wallDepth
+            // }, scene);
+            // wall1.position = new BABYLON.Vector3(baseX, baseY, baseZ - offsetZ);
+            // wall1.checkCollisions = true;
+
+            // const wallMat1 = new BABYLON.StandardMaterial("wallMat1", scene);
+            // wallMat1.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            // wall1.material = wallMat1;
+
+            // // Mur 2 - derrière la plateforme (plus éloigné)
+            // const wall2 = BABYLON.MeshBuilder.CreateBox("wall2", {
+            //     width: wallWidth,
+            //     height: wallHeight,
+            //     depth: wallDepth
+            // }, scene);
+            // wall2.position = new BABYLON.Vector3(baseX + 20, baseY, baseZ + offsetZ);
+            // wall2.checkCollisions = true;
+
+            // const wallMat2 = new BABYLON.StandardMaterial("wallMat2", scene);
+            // wallMat2.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
+            // wall2.material = wallMat2;
+
         }
         else {
             // Position par défaut si la plateforme n'existe pas
