@@ -26,6 +26,7 @@ function launchGame() {
         let isFreeCamMode = false;
         let checkpointPosition = new BABYLON.Vector3(0, 5, 0);
         let checkpointReached = false;
+        let checkpoint2Reached = false;
 
 
 
@@ -242,13 +243,19 @@ function launchGame() {
                 sortie.checkCollisions = true;
 
                 solidObjects.push(sortie);
+                const checkPointIsland2 = BABYLON.MeshBuilder.CreateCylinder("checkPointIsland2", {
+                diameter: 60,
+                height: 1.5,
+                tessellation: 64
+            }, scene);
+            checkPointIsland2.position = labyrinth.position.add(new BABYLON.Vector3(100, 40, 280)); // décale ton checkpoint 2
+            checkPointIsland2.checkCollisions = true;
+            checkPointIsland2.material = islandMat; // réutilise ton material existant
+            solidObjects.push(checkPointIsland2);
             }
         );
-
-
-
-            
-
+        // ——— Checkpoint #2 ———
+        
 
         }
 
@@ -264,7 +271,8 @@ function launchGame() {
             const pos = JSON.parse(savedPos);
             bonhomme.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
         } else {
-            bonhomme.position = new BABYLON.Vector3(0, 5, 0);
+            bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0)); // Décale légèrement en Y pour ne pas être sous le sol
+
         }
 
         BABYLON.SceneLoader.ImportMesh(
@@ -312,12 +320,9 @@ function launchGame() {
         const horizontalPlatformMesh = scene.getMeshByName("horizontalPlatform");
         if (horizontalPlatformMesh) {
             // Clone la position de base
-            bonhomme.position = horizontalPlatformMesh.position.clone();
-            bonhomme.position.y += 1;
 
             // Décale le bonhomme vers le bord gauche (vers le disk)
             const backward = new BABYLON.Vector3(Math.cos(horizontalPlatformMesh.rotation.y), 0, -Math.sin(horizontalPlatformMesh.rotation.y));
-            bonhomme.position.addInPlace(backward.scale(horizontalPlatformMesh.scaling.x * 15)); // bord
 
             const platformCount = 10;
             const platformDiameter = 10;
@@ -678,6 +683,32 @@ function launchGame() {
                     }, 3000);
                 }
             }
+
+            // gestion du 2ᵉ checkpoint
+            const cp2 = scene.getMeshByName("checkPointIsland2");
+            if (cp2 && !checkpoint2Reached) {
+                const dist2 = BABYLON.Vector3.Distance(bonhomme.position, cp2.position);
+                if (dist2 < 30) {
+                    // sauve ton nouveau point de réapparition
+                    checkpointPosition = cp2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
+                    checkpoint2Reached = true;
+                    // feedback (son + message) en réutilisant ton UI existant
+                    const sound2 = document.getElementById("checkpointSound");
+                    sound2.currentTime = 0;
+                    sound2.play();
+                    const msg2 = document.getElementById("checkpointMessage");
+                    msg2.innerText = "BRAVO ! Vous avez atteint le 2ème checkpoint !";
+                    msg2.style.display = "block";
+                    setTimeout(() => {
+                        msg2.style.opacity = "0";
+                        setTimeout(() => {
+                            msg2.style.display = "none";
+                            msg2.style.opacity = "1";
+                        }, 500);
+                    }, 3000);
+                }
+            }
+
             
         });
 
