@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', function () {
 function launchGame() {
     const loader = document.getElementById('loader');
     loader.classList.add('visible');
-
+    var checkpointPosition = null;
     const canvas = document.getElementById('renderCanvas');
     const engine = new BABYLON.Engine(canvas, true);
 
@@ -79,7 +79,7 @@ function launchGame() {
         const solidObjects = [];
         const platformPositions = [];
         let isFreeCamMode = false;
-        let checkpointPosition = new BABYLON.Vector3(0, 5, 0);
+        checkpointPosition = new BABYLON.Vector3(0, 5, 0);
         let checkpointReached = false;
         let checkpoint2Reached = false;
 
@@ -362,8 +362,6 @@ function launchGame() {
             bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
             }
         );
-        // ——— Checkpoint #2 ———
-        
 
         }
 
