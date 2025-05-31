@@ -17,6 +17,10 @@ Trouver la sortie de ce mauvais rêve… si elle existe.`;
 
         startScreen.style.display = 'none';
         narration.classList.add('active');
+        const ambiance = document.getElementById('ambianceAudio');
+        ambiance.volume = 0.5;
+        ambiance.play();
+
 
         // Effet machine à écrire
         let i = 0;
