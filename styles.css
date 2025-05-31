@@ -124,14 +124,14 @@ html, body {
 /* ————— PAUSE MENU ————— */
 #pauseMenu {
   position: fixed;
-  inset: 0;                      /* plein écran */
-  background: rgba(0,0,0,.6);    /* voile sombre */
+  inset: 0;
+  background: rgba(0,0,0,.6);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
-  z-index: 999;                  /* au-dessus de tout */
+  z-index: 999;
 }
 
 #pauseMenu.hidden { display: none; }
@@ -140,18 +140,21 @@ html, body {
   min-width: 320px;
   padding: 1em 2em;
   font-size: 1.2rem;
-  border: none;
-  border-radius: 12px;
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+  border-radius: 15px;
   cursor: pointer;
-  transition: transform .15s;
+  transition: background-color 0.3s ease, transform 0.15s ease;
 }
 
-#pauseMenu button:hover { transform: scale(1.05); }
+#pauseMenu button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
 
-/* couleurs */
-#btnRespawn { background:#3498db; color:#fff; }
-#btnRestart { background:#e67e22; color:#fff; }
-#btnHome    { background:#c0392b; color:#fff; }
+
+#pauseMenu button:hover { transform: scale(1.05); }
 
 #startScreen {
   position: absolute;
