@@ -925,6 +925,42 @@ function launchGame() {
                 pivot.rotate(BABYLON.Axis.Y, 0.002, BABYLON.Space.WORLD); // tourne autour de Y
             });
         });
+        BABYLON.SceneLoader.ImportMesh(null, "models/", "birds.glb", scene, function (meshes) {
+            const importedMesh = meshes[0];
+
+            // Crée un pivot invisible au centre
+            const pivot = new BABYLON.TransformNode("modelPivot", scene);
+            pivot.position = new BABYLON.Vector3(0, 0, 0); // centre du monde
+
+            // Positionne le modèle à une certaine distance du centre
+            importedMesh.parent = pivot;
+            importedMesh.position = new BABYLON.Vector3(30, 10, 0); // rayon de l'orbite
+            importedMesh.scaling = new BABYLON.Vector3(1, 1, 1);
+            importedMesh.checkCollisions = true;
+
+            // Animation de rotation du pivot
+            scene.onBeforeRenderObservable.add(() => {
+                pivot.rotate(BABYLON.Axis.Y, -0.004, BABYLON.Space.WORLD); // tourne autour de Y
+            });
+        });
+        BABYLON.SceneLoader.ImportMesh(null, "models/", "birds.glb", scene, function (meshes) {
+            const importedMesh = meshes[0];
+
+            // Crée un pivot invisible au centre
+            const pivot = new BABYLON.TransformNode("modelPivot", scene);
+            pivot.position = new BABYLON.Vector3(0, 0, 0); // centre du monde
+
+            // Positionne le modèle à une certaine distance du centre
+            importedMesh.parent = pivot;
+            importedMesh.position = new BABYLON.Vector3(30, 10, 0); // rayon de l'orbite
+            importedMesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+            importedMesh.checkCollisions = true;
+
+            // Animation de rotation du pivot
+            scene.onBeforeRenderObservable.add(() => {
+                pivot.rotate(BABYLON.Axis.Y, -0.005, BABYLON.Space.WORLD); // tourne autour de Y
+            });
+        });
 
         addSkyPlanet(scene);
         const blur = new BABYLON.BlurPostProcess("SandBlur", new BABYLON.Vector2(1.0, 1.0), 2.0, 1, scene.activeCamera);
