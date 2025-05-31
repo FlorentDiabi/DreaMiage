@@ -8,11 +8,12 @@
 </head>
 <body>
   <div id="startScreen">
-    <video id="introVideo" autoplay muted loop playsinline>
-    <source src="models/Video.mp4" type="video/mp4">
-    Votre navigateur ne supporte pas la vidéo HTML5.
-  </video>
-    <h1>Bienvenue dans DreamLand</h1>
+    <div id="introSlideshow">
+      <img src="img/astro_plateforme.jpg" class="slide active" alt="Image 1">
+      <img src="img/astro_dragon.jpg" class="slide" alt="Image 2">
+      <img src="img/astro_labyrinth.jpg" class="slide" alt="Image 3">
+    </div>
+    <h1>Bienvenue dans DreaMIAGE</h1>
     <button id="playButton">Jouer</button>
   </div>
   <div id="loader">
@@ -40,5 +41,18 @@
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
   <script src="main.js"></script>
+  <script>
+    const slides = document.querySelectorAll('#introSlideshow .slide');
+    let currentSlide = 0;
+  
+    function showNextSlide() {
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+    }
+  
+    setInterval(showNextSlide, 3000);
+  </script>
+  
 </body>
 </html>
