@@ -2,20 +2,50 @@ window.addEventListener('DOMContentLoaded', function () {
     console.log("Jeu démarré");
     const playButton = document.getElementById('playButton');
     playButton.addEventListener('click', () => {
-        document.getElementById('startScreen').style.display = 'none';
-        document.getElementById('renderCanvas').style.display = 'block';
+        const startScreen = document.getElementById('startScreen');
+        const narration = document.getElementById('introNarration');
+        const canvas = document.getElementById('renderCanvas');
+        const textElement = document.getElementById('narrationText');
+
+        const story = `Vous vous êtes endormi paisiblement chez vous…
+Mais à votre réveil, tout a changé.
+
+Un monde étrange, inquiétant, s'est imposé à vous.
+Un seul choix : avancer.
+Surmonter les épreuves.
+Trouver la sortie de ce mauvais rêve… si elle existe.`;
+
+        startScreen.style.display = 'none';
+        narration.classList.add('active');
+
+        // Effet machine à écrire
+        let i = 0;
+        const speed = 70;
+
+        function typeWriter() {
+            if (i < story.length) {
+            textElement.textContent += story.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+            }
+        }
+        typeWriter();
+        // Total = temps d’écriture + pause + transition
+        const totalDuration = story.length * speed + 3000;
+        setTimeout(() => {
+        narration.classList.remove('active');
+        canvas.style.display = 'block';
         launchGame();
-    });
+                }, totalDuration);
+        });
 });
 
 function launchGame() {
-    const loader = document.getElementById('loader');
-    loader.classList.add('visible');
     var checkpointPosition = null;
     const canvas = document.getElementById('renderCanvas');
     const engine = new BABYLON.Engine(canvas, true);
 
-   
+
     const pauseMenu      = document.getElementById('pauseMenu');
     const btnRespawn     = document.getElementById('btnRespawn');
     const btnRestart     = document.getElementById('btnRestart');
@@ -23,7 +53,7 @@ function launchGame() {
 
     let isPaused = false;
 
-    
+
     function togglePause() {
     isPaused = !isPaused;
 
@@ -127,17 +157,17 @@ function launchGame() {
             addRectangles(lastPlatformPos, rectangleDirection, scene, rectangleList, solidObjects, engine);
 
             const lastRect = rectangleList[rectangleList.length - 1];
-            const DiskDirection = lastPlatformPos.subtract(beforeLastPlatformPos).normalize(); 
-            const diskDistance = 20; 
+            const DiskDirection = lastPlatformPos.subtract(beforeLastPlatformPos).normalize();
+            const diskDistance = 20;
 
             const diskPos = lastRect.position.add(DiskDirection.scale(diskDistance));
 
             const disk = BABYLON.MeshBuilder.CreateCylinder("finalDisk", {
-                diameter: 14,  
-                height: 1.2,   
+                diameter: 14,
+                height: 1.2,
                 tessellation: 64
             }, scene);
-            disk.position = new BABYLON.Vector3(diskPos.x, lastRect.position.y - 0.5, diskPos.z); 
+            disk.position = new BABYLON.Vector3(diskPos.x, lastRect.position.y - 0.5, diskPos.z);
             disk.checkCollisions = true;
 
             const diskMat = new BABYLON.StandardMaterial("diskMat", scene);
@@ -150,7 +180,7 @@ function launchGame() {
 
             scene.onBeforeRenderObservable.add(() => {
                 diskTime += engine.getDeltaTime();
-                const speed = 0.001;        
+                const speed = 0.001;
                 disk.position.y = baseY + (Math.sin(diskTime * speed) * 0.5 + 0.5) * amplitude;
             });
             solidObjects.push(disk);
@@ -202,30 +232,30 @@ function launchGame() {
                 const baseX = horizontalPlatform.position.x + (side * platformWidth / 2);
                 const baseY = horizontalPlatform.position.y + obstacleHeight / 2;
                 const baseZ = horizontalPlatform.position.z + (i - nbObstacles / 2) * spacing;
-            
+
                 const obstacle = BABYLON.MeshBuilder.CreateBox(`obstacleSweeper${i}`, { // ← nom commence par "obstacle"
                     width: obstacleWidth,
                     height: obstacleHeight,
                     depth: obstacleDepth
                 }, scene);
-            
+
                 obstacle.position = new BABYLON.Vector3(baseX, baseY, baseZ);
                 obstacle.checkCollisions = true;
-            
+
                 const mat = new BABYLON.StandardMaterial(`sweepObstacleMat${i}`, scene);
                 mat.diffuseColor = new BABYLON.Color3(1, 0, 0);
                 obstacle.material = mat;
-            
+
                 let time = 0;
                 const direction = -side;
-            
+
                 scene.onBeforeRenderObservable.add(() => {
                     time += engine.getDeltaTime();
                     const t = Math.sin(time * moveSpeed);
                     obstacle.position.x = baseX + direction * (t + 1) / 2 * movementDistance;
                     obstacle.refreshBoundingInfo();
                 });
-            
+
                 solidObjects.push(obstacle);
             }
 
@@ -268,7 +298,7 @@ function launchGame() {
             false
             );
             dt.hasAlpha = true;
-            
+
             const font = "bold 100px Arial";
             dt.drawText(
             "Attention à vous dans ce labyrinthe,",
@@ -289,7 +319,7 @@ function launchGame() {
             true
             );
 
-            
+
             const labelPlane = BABYLON.MeshBuilder.CreatePlane("labelPlane1", {
             width: 16,
             height: 4
@@ -317,14 +347,14 @@ function launchGame() {
             scene,
             function (meshes) {
                 const labyrinth = meshes[0];
-                
+
                 // Positionne le labyrinthe à une certaine distance de l’île finale
                 const offset = new BABYLON.Vector3(90, 0, 135); // décalage vers la droite
                 labyrinth.position = checkPointIsland.position.add(offset);
                 labyrinth.position.y = checkPointIsland.position.y + 10; // légèrement surélevé
-                
+
                 labyrinth.scaling = new BABYLON.Vector3(10, 10, 10); // ajuste selon taille du modèle
-                
+
                 // Collision activée sur tous les sous-meshes
                 meshes.forEach(mesh => {
                     solidObjects.push(mesh);
@@ -359,7 +389,7 @@ function launchGame() {
             solidObjects.push(checkPointIsland2);
 
             // === Spawn initial du bonhomme sur checkpoint 2 ===
-            bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
+            // bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
             }
         );
 
@@ -392,32 +422,29 @@ function launchGame() {
                     console.error("Erreur : modèle non chargé.");
                     return;
                 }
-        
+
                 // Créer un container pour gérer l'ensemble
                 const modelContainer = new BABYLON.TransformNode("astronautContainer", scene);
                 modelContainer.parent = bonhomme; // attaché au proxy
                 modelContainer.position = new BABYLON.Vector3(0, -1, 0); // ← à ajuster selon la taille réelle du modèle
-        
+
                 // On scale ici (ex : divisé par 10)
                 modelContainer.scaling = new BABYLON.Vector3(0.02, 0.02, 0.02); // ajuste selon le modèle
-        
+
                 // Re-parent tous les sous-meshes
                 meshes.forEach(mesh => {
                     mesh.parent = modelContainer;
                 });
-        
+
                 // Animation s'il y en a
                 if (animationGroups && animationGroups.length > 0) {
                     mainAnim = animationGroups[0];
                     // On ne démarre pas tout de suite
-                    mainAnim.stop(); 
+                    mainAnim.stop();
                 }
-                
+
             }
         );
-
-        
-        
 
 
         //SPAWN DU BONHOMME A CHANGER
@@ -465,13 +492,13 @@ function launchGame() {
                  width: 72,    // largeur sur X
                  height: 1,    // épaisseur
                  depth: 15     // profondeur sur Z
-             }, scene);
+            }, scene);
 
-             rectPlatform.position = new BABYLON.Vector3(
+            rectPlatform.position = new BABYLON.Vector3(
                 horizontalPlatformMesh.position.x +120,                   // décale vers la gauche
                  horizontalPlatformMesh.position.y + platformCount * stepHeight + 3,  // au-dessus de la dernière plateforme
                  horizontalPlatformMesh.position.z + 340 + platformCount * 15         // continue l’avancée en Z
-             );
+            );
 
             rectPlatform.checkCollisions = true;
             solidObjects.push(rectPlatform);
@@ -482,24 +509,24 @@ function launchGame() {
 
             const wallWidth = 1;
             const wallHeight = 5;
-             const wallDepth = 15;
+            const wallDepth = 15;
 
             // // Position de base de la plateforme rectangulaire
-             const baseX = rectPlatform.position.x;
+            const baseX = rectPlatform.position.x;
             const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2;
             const baseZ = rectPlatform.position.z;
 
             // // Distance pour éloigner les murs des bords
-             const offsetZ = rectPlatform.scaling.z / 2 + 3;
+            const offsetZ = rectPlatform.scaling.z / 2 + 3;
 
             // // Mur 1 - devant la plateforme (plus éloigné)
             const wall1 = BABYLON.MeshBuilder.CreateBox("wall1", {
-               width: wallWidth,
-                 height: wallHeight,
-                 depth: wallDepth
-             }, scene);
-             wall1.position = new BABYLON.Vector3(baseX, baseY, baseZ);
-             wall1.checkCollisions = true;
+                width: wallWidth,
+                height: wallHeight,
+                depth: wallDepth
+            }, scene);
+            wall1.position = new BABYLON.Vector3(baseX, baseY, baseZ);
+            wall1.checkCollisions = true;
 
             const wallMat1 = new BABYLON.StandardMaterial("wallMat1", scene);
             wallMat1.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
@@ -507,8 +534,8 @@ function launchGame() {
             solidObjects.push(wall1);
 
             // // Mur 2 - derrière la plateforme (plus éloigné)
-             const wall2 = BABYLON.MeshBuilder.CreateBox("wall2", {
-               width: wallWidth,
+            const wall2 = BABYLON.MeshBuilder.CreateBox("wall2", {
+                width: wallWidth,
                 height: wallHeight,
                 depth: wallDepth
             }, scene);
@@ -652,7 +679,7 @@ function launchGame() {
 
         scene.onBeforeRenderObservable.add(() => {
             if (!bonhomme) return;
-            
+
             const currentPos = bonhomme.position.clone();
             const isMoving = lastBonhommePos && !bonhomme.position.equalsWithEpsilon(lastBonhommePos, 0.01);
 
@@ -753,15 +780,15 @@ function launchGame() {
 
             solidObjects.forEach(plat => {
                 const boundingBox = plat.getBoundingInfo().boundingBox;
-            
+
                 const min = boundingBox.minimumWorld;
                 const max = boundingBox.maximumWorld;
-            
+
                 const isWithinX = bonhomme.position.x >= min.x && bonhomme.position.x <= max.x;
                 const isWithinZ = bonhomme.position.z >= min.z && bonhomme.position.z <= max.z;
                 const isAbove = bonhomme.position.y > max.y - 0.2; // un peu au-dessus
                 const isFalling = velocityY <= 0;
-            
+
                 if (isWithinX && isWithinZ && isAbove && isFalling) {
                     const diffY = bonhomme.position.y - max.y;
                     if (diffY <= 1.1) {
@@ -772,7 +799,7 @@ function launchGame() {
                     }
                 }
             });
-            
+
 
             if (onSomething && !isJumping && inputMap[" "]) {
                 velocityY = 0.25;
@@ -785,35 +812,35 @@ function launchGame() {
             if (bonhomme.position.y < -200) {
                 const currentAlpha = camera.alpha;
                 const currentBeta = camera.beta;
-            
+
                 bonhomme.position = checkpointPosition.clone();
                 velocityY = 0;
                 isJumping = false;
-            
+
                 camera.alpha = currentAlpha;
                 camera.beta = currentBeta;
             }
-            
+
 
             solidObjects.forEach(obj => {
                 if (!obj.name.startsWith("obstacle")) return;
-            
+
                 const obstacleBox = obj.getBoundingInfo().boundingBox;
                 const bonhommeBox = bonhomme.getBoundingInfo().boundingBox;
-            
+
                 const intersects = BABYLON.BoundingBox.Intersects(obstacleBox, bonhommeBox);
                 if (intersects) {
                     // Calcul de la direction de déplacement de l’obstacle (diff entre frames)
                     const movementVector = obj.position.subtract(obj._lastPosition || obj.position.clone());
-            
+
                     // Appliquer une légère poussée dans cette direction
                     bonhomme.moveWithCollisions(movementVector.scale(0.6));
                 }
-            
+
                 // Stocke la position pour comparer au prochain frame
                 obj._lastPosition = obj.position.clone();
             });
-            
+
 
             const cameraTarget = BABYLON.Vector3.Lerp(camera.target, bonhomme.position, 0.1);
             camera.alpha = BABYLON.Scalar.Lerp(camera.alpha, targetAlpha, 0.1);
@@ -824,20 +851,20 @@ function launchGame() {
             const islandMesh = scene.getMeshByName("checkPointIsland");
             if (islandMesh && !checkpointReached) {
                 const distance = BABYLON.Vector3.Distance(bonhomme.position, islandMesh.position);
-            
+
                 if (distance < 30) {
                     checkpointPosition = islandMesh.position.clone();
                     checkpointPosition.y += 1;
-            
+
                     checkpointReached = true;
-            
+
                     const sound = document.getElementById("checkpointSound");
                     sound.currentTime = 0;
                     sound.play();
-            
+
                     const msg = document.getElementById("checkpointMessage");
                     msg.style.display = "block";
-            
+
                     setTimeout(() => {
                         msg.style.opacity = "0";
                         setTimeout(() => {
@@ -873,28 +900,28 @@ function launchGame() {
                 }
             }
 
-            
+
         });
 
         BABYLON.SceneLoader.ImportMesh(null, "models/", "demon_dragon_full_texture.glb", scene, function (meshes) {
             const importedMesh = meshes[0];
-        
+
             // Crée un pivot invisible au centre
             const pivot = new BABYLON.TransformNode("modelPivot", scene);
             pivot.position = new BABYLON.Vector3(0, 0, 0); // centre du monde
-        
+
             // Positionne le modèle à une certaine distance du centre
             importedMesh.parent = pivot;
             importedMesh.position = new BABYLON.Vector3(40, 1, 0); // rayon de l'orbite
             importedMesh.scaling = new BABYLON.Vector3(10, 10, 10);
             importedMesh.checkCollisions = true;
-        
+
             // Animation de rotation du pivot
             scene.onBeforeRenderObservable.add(() => {
                 pivot.rotate(BABYLON.Axis.Y, 0.002, BABYLON.Space.WORLD); // tourne autour de Y
             });
         });
-        
+
         addSkyPlanet(scene);
         const blur = new BABYLON.BlurPostProcess("SandBlur", new BABYLON.Vector2(1.0, 1.0), 2.0, 1, scene.activeCamera);
         const sandParticles = new BABYLON.ParticleSystem("sand", 3000, scene);
@@ -934,7 +961,7 @@ function launchGame() {
 
         sandParticles.start();
 
-        
+
         return scene;
     };
 
