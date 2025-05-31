@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', function () {
+    console.log("Jeu démarré");
     const playButton = document.getElementById('playButton');
     playButton.addEventListener('click', () => {
         document.getElementById('startScreen').style.display = 'none';
