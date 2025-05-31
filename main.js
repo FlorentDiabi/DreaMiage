@@ -356,6 +356,9 @@ function launchGame() {
             checkPointIsland2.checkCollisions = true;
             checkPointIsland2.material = islandMat; // réutilise ton material existant
             solidObjects.push(checkPointIsland2);
+
+            // === Spawn initial du bonhomme sur checkpoint 2 ===
+            bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
             }
         );
         // ——— Checkpoint #2 ———
@@ -370,14 +373,15 @@ function launchGame() {
         bonhomme.ellipsoid = new BABYLON.Vector3(1, 2, 1);
         bonhomme.ellipsoidOffset = new BABYLON.Vector3(0, 2, 0);
 
-        const savedPos = localStorage.getItem("bonhomme_position");
-        if (savedPos) {
-            const pos = JSON.parse(savedPos);
-            bonhomme.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
-        } else {
-            bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0)); // Décale légèrement en Y pour ne pas être sous le sol
+        // const savedPos = localStorage.getItem("bonhomme_position");
+        // if (savedPos) {
+        //     const pos = JSON.parse(savedPos);
+        //     bonhomme.position = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+        // } else {
+        //     //bonhomme.position = checkPointIsland2.position.clone().add(new BABYLON.Vector3(0, 1, 0)); // Décale légèrement en Y pour ne pas être sous le sol
 
-        }
+        // }
+
 
         BABYLON.SceneLoader.ImportMesh(
             null,
@@ -418,7 +422,7 @@ function launchGame() {
 
 
         //SPAWN DU BONHOMME A CHANGER
-        bonhomme.position = new BABYLON.Vector3(platformPositions[platformPositions.length - 1].x, platformPositions[platformPositions.length - 1].y, platformPositions[platformPositions.length - 1].z);
+        // bonhomme.position = new BABYLON.Vector3(platformPositions[platformPositions.length - 1].x, platformPositions[platformPositions.length - 1].y, platformPositions[platformPositions.length - 1].z);
 
         // Faire apparaître le bonhomme sur la plateforme finale
         const horizontalPlatformMesh = scene.getMeshByName("horizontalPlatform");
@@ -474,20 +478,20 @@ function launchGame() {
             solidObjects.push(rectPlatform);
 
             const rectMat = new BABYLON.StandardMaterial("matRectPlat", scene);
-            rectMat.diffuseColor = new BABYLON.Color3(1, 0, 0); // rouge
-             rectPlatform.material = rectMat;
+            rectMat.diffuseTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/grass.png", scene);
+            rectPlatform.material = rectMat;
 
-            const wallWidth = 1;  // plus large que la plateforme (4 unités en plus)
+            const wallWidth = 1;
             const wallHeight = 5;
              const wallDepth = 15;
 
             // // Position de base de la plateforme rectangulaire
              const baseX = rectPlatform.position.x;
-            const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2; // au-dessus de la plateforme
+            const baseY = rectPlatform.position.y + rectPlatform.scaling.y / 2 + wallHeight / 2;
             const baseZ = rectPlatform.position.z;
 
             // // Distance pour éloigner les murs des bords
-             const offsetZ = rectPlatform.scaling.z / 2 + 3; // 3 unités devant/derrière la plateforme
+             const offsetZ = rectPlatform.scaling.z / 2 + 3;
 
             // // Mur 1 - devant la plateforme (plus éloigné)
             const wall1 = BABYLON.MeshBuilder.CreateBox("wall1", {
@@ -555,6 +559,21 @@ function launchGame() {
             wallMat5.diffuseColor = new BABYLON.Color3(0.6, 0.3, 0);
             wall5.material = wallMat5;
             solidObjects.push(wall5);
+
+            const startPos = rectPlatform.position.clone();
+            startPos.x -= 40;
+            startPos.y -= 10;
+            startPos.z += 15;
+            createRoundDescendingPlatforms(scene, startPos, solidObjects);
+
+            createLargePlatformBelow(scene, solidObjects);
+
+            const lastPlatform = solidObjects[solidObjects.length - 1];
+            const corridorPos = lastPlatform.position.clone();
+            corridorPos.x -= 0;
+            corridorPos.z -= 120;
+            createCorridorPlatform(scene, solidObjects, corridorPos, bonhomme);
+
 
         }
         else {
@@ -764,7 +783,7 @@ function launchGame() {
             velocityY -= 0.005;
             bonhomme.position.y += velocityY;
 
-            if (bonhomme.position.y < -100) {
+            if (bonhomme.position.y < -200) {
                 const currentAlpha = camera.alpha;
                 const currentBeta = camera.beta;
             
@@ -1140,3 +1159,152 @@ function addSkyPlanet(scene) {
         }
     );
 }
+function createRoundDescendingPlatforms(scene, startPosition, solidObjects, options = {}) {
+    const {
+        count = 6,
+        diameter = 10,
+        height = 1,
+        verticalDrop = 15,
+        horizontalStep = -12,
+        zStep = 10,
+        color = new BABYLON.Color3(0.2, 0.6, 1)
+    } = options;
+
+    for (let i = 0; i < count; i++) {
+        const platform = BABYLON.MeshBuilder.CreateCylinder(`roundPlatform_${i}`, {
+            diameter,
+            height
+        }, scene);
+
+        platform.position = new BABYLON.Vector3(
+            startPosition.x + i * horizontalStep,
+            startPosition.y - i * verticalDrop,
+            startPosition.z + i * zStep
+        );
+
+        platform.checkCollisions = true;
+        solidObjects.push(platform);
+
+        const mat = new BABYLON.StandardMaterial(`mat_roundPlatform_${i}`, scene);
+        mat.diffuseColor = color;
+        platform.material = mat;
+
+        // Texte flottant au-dessus de la dernière plateforme
+        if (i === count - 1) {
+            const dt = new BABYLON.DynamicTexture(
+                "dt_lastPlatform",
+                { width: 2048, height: 512 },
+                scene,
+                false
+            );
+            dt.hasAlpha = true;
+
+            const font = "bold 100px Arial";
+            dt.drawText(
+                "c'est l'heure de se jeter",
+                null,
+                120,
+                font,
+                "white",
+                "transparent",
+                true
+            );
+            dt.drawText(
+                "dans le vide",
+                null,
+                300,
+                font,
+                "white",
+                "transparent",
+                true
+            );
+
+            const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane_last", {
+                width: 30,
+                height: 7.5
+            }, scene);
+
+            textPlane.material = new BABYLON.StandardMaterial("textMat_last", scene);
+            textPlane.material.diffuseTexture = dt;
+            textPlane.material.emissiveColor = BABYLON.Color3.White();
+            textPlane.material.backFaceCulling = false;
+
+            textPlane.position = platform.position.clone();
+            textPlane.position.y += 6; // placé un peu au-dessus de la plateforme
+
+            // Oriente le texte vers la caméra active
+            if (scene.activeCamera) {
+                textPlane.lookAt(scene.activeCamera.position);
+            }
+        }
+    }
+}
+
+
+function createLargePlatformBelow(scene, solidObjects, verticalOffset = 250, diameter = 20, height = 1, textureUrl = "https://www.babylonjs-playground.com/textures/grass.png") {
+    const lastPlatform = solidObjects[solidObjects.length - 1];
+    if (!lastPlatform) return;
+
+    const position = lastPlatform.position.clone();
+    position.y -= verticalOffset;
+
+    const platform = BABYLON.MeshBuilder.CreateCylinder("largeRoundPlatform", {
+        diameter,
+        height
+    }, scene);
+
+    platform.position = position;
+    platform.checkCollisions = true;
+
+    const mat = new BABYLON.StandardMaterial("mat_largeRoundPlatform", scene);
+    mat.diffuseTexture = new BABYLON.Texture(textureUrl, scene);
+    platform.material = mat;
+
+    solidObjects.push(platform);
+}
+
+function createCorridorPlatform(scene, solidObjects, startPosition, player, length = 10, width = 200, height = 1, textureUrl = "https://www.babylonjs-playground.com/textures/grass.png") {
+    const platform = BABYLON.MeshBuilder.CreateBox("corridorPlatform", {
+        width: length,
+        depth: width,
+        height
+    }, scene);
+
+    platform.position = startPosition.clone();
+    platform.checkCollisions = true;
+
+    const mat = new BABYLON.StandardMaterial("mat_corridorPlatform", scene);
+    mat.diffuseTexture = new BABYLON.Texture(textureUrl, scene); // 🌱 Texture appliquée ici
+    platform.material = mat;
+
+    solidObjects.push(platform);
+
+    // ⏳ Lancement du timer uniquement quand le joueur touche la plateforme
+    let triggered = false;
+
+    const checkInterval = setInterval(() => {
+        const distance = BABYLON.Vector3.Distance(platform.position, player.position);
+        const isAbove = player.position.y > platform.position.y;
+
+        if (!triggered && distance < 6 && isAbove) {
+            triggered = true;
+            clearInterval(checkInterval);
+
+            setTimeout(() => {
+                platform.checkCollisions = false;
+
+                const anim = new BABYLON.Animation("fall", "position.y", 30,
+                    BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+                const keys = [
+                    { frame: 0, value: platform.position.y },
+                    { frame: 30, value: platform.position.y - 1000 }
+                ];
+                anim.setKeys(keys);
+                platform.animations = [anim];
+                scene.beginAnimation(platform, 0, 30, false);
+            }, 8000);
+        }
+    }, 100);
+}
+
