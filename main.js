@@ -884,10 +884,10 @@ function launchGame() {
             if (cp2 && !checkpoint2Reached) {
                 const dist2 = BABYLON.Vector3.Distance(bonhomme.position, cp2.position);
                 if (dist2 < 30) {
-                    // sauve ton nouveau point de réapparition
+                    
                     checkpointPosition = cp2.position.clone().add(new BABYLON.Vector3(0, 1, 0));
                     checkpoint2Reached = true;
-                    // feedback (son + message) en réutilisant ton UI existant
+                    
                     const sound2 = document.getElementById("checkpointSound");
                     sound2.currentTime = 0;
                     sound2.play();
@@ -904,7 +904,57 @@ function launchGame() {
                 }
             }
 
+            const cp3 = scene.getMeshByName("checkPointIsland3");
+            if (cp3 && !scene._gameEnded) {
+            const dist3 = BABYLON.Vector3.Distance(bonhomme.position, cp3.position);
+            if (dist3 < 30) {
+                scene._gameEnded = true;
+                var ambiance = document.getElementById('ambianceAudio');
+                // Fondu du volume
+                let fadeInterval = setInterval(() => {
+                if (ambiance.volume > 0.01) {
+                    ambiance.volume -= 0.01;
+                } else {
+                    ambiance.volume = 0;
+                    ambiance.pause();
+                    clearInterval(fadeInterval);
+                }
+                }, 100);
 
+                const endDiv = document.getElementById("endNarration");
+                const endText = document.getElementById("endText");
+
+                const story = `Que se passe-t-il... ?\nJe ne vois plus rien...\n\nOh... je crois que... je me réveille.`;
+                let i = 0;
+                endText.textContent = "";
+                endDiv.classList.add("active");
+
+                setTimeout(() => {
+                function typeWriter() {
+                    if (i < story.length) {
+                    endText.textContent += story.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 70);
+                    }
+                }
+                typeWriter();
+                }, 1000);
+
+                // Transition vers blanc
+                setTimeout(() => {
+                endDiv.classList.add("white");
+                }, 8000);
+
+                // Retour à l’écran d’accueil
+                setTimeout(() => {
+                endDiv.classList.remove("active", "white");
+                endText.textContent = "";
+                document.getElementById("startScreen").style.display = "flex";
+                document.getElementById("renderCanvas").style.display = "none";
+                scene.dispose();
+                }, 12000);
+            }
+        }
         });
 
         BABYLON.SceneLoader.ImportMesh(null, "models/", "demon_dragon_full_texture.glb", scene, function (meshes) {
@@ -1340,12 +1390,11 @@ function createCorridorPlatform(scene, solidObjects, startPosition, player, leng
     platform.checkCollisions = true;
 
     const mat = new BABYLON.StandardMaterial("mat_corridorPlatform", scene);
-    mat.diffuseTexture = new BABYLON.Texture(textureUrl, scene); // 🌱 Texture appliquée ici
+    mat.diffuseTexture = new BABYLON.Texture(textureUrl, scene);
     platform.material = mat;
 
     solidObjects.push(platform);
 
-    // ⏳ Lancement du timer uniquement quand le joueur touche la plateforme
     let triggered = false;
 
     const checkInterval = setInterval(() => {
@@ -1359,18 +1408,90 @@ function createCorridorPlatform(scene, solidObjects, startPosition, player, leng
             setTimeout(() => {
                 platform.checkCollisions = false;
 
-                const anim = new BABYLON.Animation("fall", "position.y", 30,
+                const startY = platform.position.y;
+
+                // Animation de chute
+                const fallAnim = new BABYLON.Animation("fall", "position.y", 30,
                     BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
-                const keys = [
-                    { frame: 0, value: platform.position.y },
-                    { frame: 30, value: platform.position.y - 1000 }
+                const fallKeys = [
+                    { frame: 0, value: startY },
+                    { frame: 30, value: startY - 1000 }
                 ];
-                anim.setKeys(keys);
-                platform.animations = [anim];
-                scene.beginAnimation(platform, 0, 30, false);
-            }, 8000);
+                fallAnim.setKeys(fallKeys);
+                platform.animations = [fallAnim];
+
+                scene.beginAnimation(platform, 0, 30, false, 3, () => {
+                    // Attendre en bas, puis remonter
+                    setTimeout(() => {
+                        const riseAnim = new BABYLON.Animation("rise", "position.y", 30,
+                            BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+                        const riseKeys = [
+                            { frame: 0, value: platform.position.y },
+                            { frame: 30, value: startY }
+                        ];
+                        riseAnim.setKeys(riseKeys);
+                        platform.animations = [riseAnim];
+
+                        scene.beginAnimation(platform, 0, 30, false, 2, () => {
+                            platform.checkCollisions = true;
+                            triggered = false;
+                        });
+                    }, 4000);
+                });
+
+            }, 3000);
         }
-    }, 100);
+    }, 50);
+
+        // === Création d'une île au bout du couloir ===
+    const islandOffsetZ = width / 2 + 30; // distance après le bout du couloir
+    const islandPosition = startPosition.clone();
+    islandPosition.z -= islandOffsetZ;
+
+    const checkpointIsland3 = BABYLON.MeshBuilder.CreateCylinder("checkPointIsland3", {
+        diameter: 60,
+        height: 1.5,
+        tessellation: 64
+    }, scene);
+
+    checkpointIsland3.position = new BABYLON.Vector3(
+        islandPosition.x,
+        islandPosition.y,
+        islandPosition.z
+    );
+
+    checkpointIsland3.checkCollisions = true;
+
+    const islandMat = new BABYLON.StandardMaterial("islandMat3", scene);
+    const islandTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/grass.png", scene);
+    islandTexture.uScale = 4;
+    islandTexture.vScale = 4;
+    islandMat.diffuseTexture = islandTexture;
+    checkpointIsland3.material = islandMat;
+
+    solidObjects.push(checkpointIsland3);
+
+    // Message flottant (facultatif)
+    const dt3 = new BABYLON.DynamicTexture("dt_checkpoint3", { width: 2048, height: 512 }, scene, false);
+    dt3.hasAlpha = true;
+    dt3.drawText("Un dernier souffle... avant l'inconnu", null, 200, "bold 80px Arial", "white", "transparent", true);
+
+    const labelPlane3 = BABYLON.MeshBuilder.CreatePlane("labelPlane3", {
+        width: 20,
+        height: 4
+    }, scene);
+
+    labelPlane3.position = checkpointIsland3.position.add(new BABYLON.Vector3(0, 10, 0));
+    labelPlane3.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+    const labelMat3 = new BABYLON.StandardMaterial("matLabel3", scene);
+    labelMat3.diffuseTexture = dt3;
+    labelMat3.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    labelMat3.backFaceCulling = false;
+    labelMat3.alpha = 1;
+    labelPlane3.material = labelMat3;
+
 }
 

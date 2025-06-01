@@ -220,3 +220,41 @@ canvas {
     transform: translateY(0);
   }
 }
+
+#endNarration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s ease-in-out;
+  z-index: 100;
+}
+
+#endNarration.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#endNarration.white {
+  background: white;
+  color: black;
+  transition: background 2s ease-in-out, color 2s ease-in-out;
+}
+
+.narration-text {
+  text-align: center;
+  font-size: 1.8em;
+  padding: 40px;
+  max-width: 800px;
+  font-family: 'Courier New', monospace;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
